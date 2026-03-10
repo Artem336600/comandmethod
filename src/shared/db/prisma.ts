@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { appConfig } from "@/src/shared/lib/config";
 import { logger } from "@/src/shared/lib/logger";
 
@@ -9,6 +9,8 @@ const prismaLogger = logger.child({
 declare global {
   var __commandMethodPrisma__: PrismaClient | undefined;
 }
+
+export type PrismaDbClient = PrismaClient | Prisma.TransactionClient;
 
 function createPrismaClient() {
   prismaLogger.debug("[prisma] Creating Prisma client", {

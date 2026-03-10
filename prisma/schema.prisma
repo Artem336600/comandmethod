@@ -7,4 +7,210 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Domain models will be introduced in the next milestone.
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum BlockStatus {
+  DRAFT
+  READY
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+  CANCELLED
+}
+
+enum BlockKind {
+  DELIVERABLE
+  MILESTONE
+  DECISION
+  REVIEW
+  RELEASE
+}
+
+enum DependencyKind {
+  FINISH_TO_START
+}
+
+enum AssignmentTargetType {
+  PROJECT
+  BLOCK
+}
+
+enum AssignmentRole {
+  ADMIN
+  PM
+  LEAD
+  MEMBER
+  VIEWER
+  OWNER
+  ASSIGNEE
+  REVIEWER
+  WATCHER
+}
+
+enum AssignmentHistoryEventType {
+  ASSIGNED
+  REVOKED
+}
+
+enum BlockStatusHistoryEventType {
+  STATUS_CHANGED
+  STATUS_BACKFILLED
+}
+
+model Project {
+  id            String        @id @default(cuid())
+  name          String        @db.VarChar(160)
+  slug          String        @unique @db.VarChar(160)
+  description   String?
+  status        ProjectStatus @default(DRAFT)
+  startBlockId  String?       @unique
+  finishBlockId String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  archivedAt    DateTime?
+
+  startBlock               Block?                 @relation("ProjectStartAnchor", fields: [startBlockId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  finishBlock              Block?                 @relation("ProjectFinishAnchor", fields: [finishBlockId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  blocks                   Block[]                @relation("ProjectBlocks")
+  dependencies             Dependency[]
+  assignments              Assignment[]
+  assignmentHistoryEntries AssignmentHistory[]
+  comments                 Comment[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Block {
+  id                    String      @id @default(cuid())
+  projectId             String
+  parentBlockId         String?
+  title                 String      @db.VarChar(180)
+  summary               String?
+  expectedResult        String?
+  definitionOfDoneItems String[]
+  acceptanceCriteria    String[]
+  ownerId               String?     @db.VarChar(191)
+  status                BlockStatus @default(DRAFT)
+  blockerReason         String?
+  blockerSource         String?     @db.VarChar(200)
+  unblockCondition      String?
+  kind                  BlockKind   @default(DELIVERABLE)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  project                  Project              @relation("ProjectBlocks", fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentBlock              Block?               @relation("BlockChildren", fields: [parentBlockId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  childBlocks              Block[]              @relation("BlockChildren")
+  startAnchorForProjects   Project[]            @relation("ProjectStartAnchor")
+  finishAnchorForProjects  Project[]            @relation("ProjectFinishAnchor")
+  predecessorDependencies  Dependency[]         @relation("DependencyPredecessor")
+  successorDependencies    Dependency[]         @relation("DependencySuccessor")
+  assignments              Assignment[]
+  assignmentHistoryEntries AssignmentHistory[]
+  comments                 Comment[]
+  statusHistoryEntries     BlockStatusHistory[]
+
+  @@index([projectId, status])
+  @@index([projectId, parentBlockId])
+  @@index([ownerId, status])
+}
+
+model Dependency {
+  id                 String         @id @default(cuid())
+  projectId          String
+  predecessorBlockId String
+  successorBlockId   String
+  kind               DependencyKind @default(FINISH_TO_START)
+  createdAt          DateTime       @default(now())
+
+  project            Project        @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  predecessorBlock   Block          @relation("DependencyPredecessor", fields: [predecessorBlockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  successorBlock     Block          @relation("DependencySuccessor", fields: [successorBlockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([projectId, predecessorBlockId, successorBlockId])
+  @@index([projectId])
+  @@index([predecessorBlockId])
+  @@index([successorBlockId])
+}
+
+model Assignment {
+  id               String               @id @default(cuid())
+  projectId        String
+  blockId          String?
+  targetType       AssignmentTargetType
+  role             AssignmentRole
+  subjectUserId    String               @db.VarChar(191)
+  assignedByUserId String               @db.VarChar(191)
+  createdAt        DateTime             @default(now())
+  revokedAt        DateTime?
+
+  project          Project              @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  block            Block?               @relation(fields: [blockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  historyEntries   AssignmentHistory[]
+
+  @@index([projectId, targetType, role, revokedAt])
+  @@index([blockId, role, revokedAt])
+  @@index([subjectUserId, revokedAt])
+}
+
+model AssignmentHistory {
+  id              String                     @id @default(cuid())
+  assignmentId    String
+  projectId       String
+  blockId         String?
+  targetType      AssignmentTargetType
+  role            AssignmentRole
+  subjectUserId   String                     @db.VarChar(191)
+  changedByUserId String                     @db.VarChar(191)
+  eventType       AssignmentHistoryEventType
+  occurredAt      DateTime                   @default(now())
+
+  assignment      Assignment                 @relation(fields: [assignmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project         Project                    @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  block           Block?                     @relation(fields: [blockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([assignmentId, occurredAt])
+  @@index([projectId, eventType, occurredAt])
+  @@index([blockId, eventType, occurredAt])
+}
+
+model Comment {
+  id           String    @id @default(cuid())
+  projectId    String
+  blockId      String?
+  authorUserId String    @db.VarChar(191)
+  body         String
+  createdAt    DateTime  @default(now())
+  editedAt     DateTime?
+
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  block        Block?    @relation(fields: [blockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([blockId, createdAt])
+}
+
+model BlockStatusHistory {
+  id               String                      @id @default(cuid())
+  blockId          String
+  fromStatus       BlockStatus?
+  toStatus         BlockStatus
+  changedByUserId  String                      @db.VarChar(191)
+  eventType        BlockStatusHistoryEventType @default(STATUS_CHANGED)
+  reason           String?
+  blockerReason    String?
+  blockerSource    String?                     @db.VarChar(200)
+  unblockCondition String?
+  occurredAt       DateTime                    @default(now())
+
+  block            Block                       @relation(fields: [blockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([blockId, occurredAt])
+  @@index([toStatus, occurredAt])
+}
