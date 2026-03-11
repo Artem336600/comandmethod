@@ -6,10 +6,20 @@ describe("Block", () => {
       Block.create({
         id: "block-1",
         projectId: "project-1",
-        title: "Ship onboarding flow",
+        title: "Onboarding flow delivered",
         status: "ready"
       })
     ).toThrow("A block must have an owner before leaving draft.");
+  });
+
+  it("should reject titles that describe an activity instead of a completed result", () => {
+    expect(() =>
+      Block.create({
+        id: "block-1",
+        projectId: "project-1",
+        title: "Implement onboarding flow"
+      })
+    ).toThrow("Block titles must describe a completed result, not an activity.");
   });
 
   it("should reject blocked blocks without blocker details", () => {

@@ -177,6 +177,7 @@ export class Block {
     BlockPolicy.assertLifecycleState({
       blockId: props.id,
       parentBlockId: props.parentBlockId,
+      title: props.title,
       status: props.status,
       ownerId: props.ownerId,
       expectedResult: props.expectedResult,

@@ -6,6 +6,7 @@ import type { BlockStatus } from "./block-status";
 type BlockLifecycleInput = {
   blockId: string;
   parentBlockId: string | null;
+  title: string;
   status: BlockStatus;
   ownerId: string | null;
   expectedResult: string | null;
@@ -22,8 +23,36 @@ const NON_DRAFT_STATUSES = new Set<BlockStatus>([
   "cancelled"
 ]);
 
+const ACTIVITY_TITLE_PREFIXES = [
+  "add ",
+  "build ",
+  "create ",
+  "design ",
+  "fix ",
+  "implement ",
+  "investigate ",
+  "refactor ",
+  "review ",
+  "set up ",
+  "setup ",
+  "ship ",
+  "test ",
+  "update ",
+  "write ",
+  "добавить ",
+  "исправить ",
+  "написать ",
+  "настроить ",
+  "обновить ",
+  "проверить ",
+  "реализовать ",
+  "сделать "
+] as const;
+
 export class BlockPolicy {
   static assertLifecycleState(input: BlockLifecycleInput): void {
+    BlockPolicy.assertTitleDescribesCompletedResult(input.title);
+
     if (input.parentBlockId && input.parentBlockId === input.blockId) {
       throw new DomainValidationError("A block cannot be its own parent.", {
         blockId: input.blockId
@@ -63,6 +92,18 @@ export class BlockPolicy {
       throw new DomainValidationError("Only blocked blocks can store blocker details.", {
         blockId: input.blockId,
         status: input.status
+      });
+    }
+  }
+
+  static assertTitleDescribesCompletedResult(title: string): void {
+    const normalizedTitle = title.trim().toLowerCase();
+    const matchingPrefix = ACTIVITY_TITLE_PREFIXES.find((prefix) => normalizedTitle.startsWith(prefix));
+
+    if (matchingPrefix) {
+      throw new DomainValidationError("Block titles must describe a completed result, not an activity.", {
+        title,
+        matchingPrefix
       });
     }
   }
