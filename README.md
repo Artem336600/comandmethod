@@ -6,16 +6,17 @@ ticket board.
 
 ## Current Status
 
-This repository currently contains the foundation application setup plus the first core domain model slice:
+This repository currently contains the foundation application setup, the core domain model slice, and the first authenticated workspace shell baseline:
 
 - Next.js application in the workspace root
 - Typed environment and runtime configuration
 - Security middleware and health endpoint
 - Prisma/PostgreSQL schema for projects, blocks, dependencies, assignments, comments, and status history
 - Modular monolith domain, application, and infrastructure modules for the core workflow model
-- Marketing and workspace route shells
+- Marketing routes plus authenticated workspace shell routes for `/projects` and `/projects/[projectSlug]`
 - Baseline signed-session auth flow
-- Unit and integration coverage for domain invariants, mappers, and workflow services
+- Project selection, workspace rail/sidebar/canvas placeholder composition, and shell view-model services
+- Unit and integration coverage for domain invariants, mappers, workflow services, and workspace shell rendering
 
 ## Quick Start
 
@@ -31,7 +32,7 @@ npm run prisma:generate
 npm run dev
 ```
 
-Open `http://localhost:3000`, then use `/sign-in` to create a development session and access `/projects`.
+Open `http://localhost:3000`, then use `/sign-in` to create a development session and access `/projects`. The workspace entry now redirects to the first accessible project slug when available and renders the shell empty state otherwise.
 
 ## Core Commands
 
@@ -95,6 +96,22 @@ Important implementation entry points:
 - `src/modules/*/domain/*` for entities, policies, and repository contracts
 - `src/modules/*/infrastructure/*` for Prisma mappers and repositories
 - `src/modules/views/application/workspace-read-services.ts` for the workspace read-model composition layer
+
+## Project Workspace Shell
+
+The current workspace milestone adds the first real authenticated project shell:
+
+- `/projects` resolves the signed-in member's accessible projects and redirects to `/projects/[projectSlug]` when a default project exists
+- `/projects/[projectSlug]` renders the selected-project workspace shell with a project rail, summary sidebar, and canvas placeholder stage
+- `src/modules/views/application/workspace-shell-view-model-service.ts` builds the shell view model from session access, project summaries, and one active project snapshot
+- `src/modules/projects/application/resolve-workspace-project-selection.ts` centralizes slug selection and redirect behavior
+
+Important implementation entry points:
+
+- `app/(workspace)/projects/workspace-shell-data.ts`
+- `app/(workspace)/projects/page.tsx`
+- `app/(workspace)/projects/[projectSlug]/page.tsx`
+- `src/modules/views/presentation/workspace-project-shell-view.tsx`
 
 ## Documentation
 

@@ -3,7 +3,7 @@
 > Project map for AI agents. Keep this file up-to-date as the project evolves.
 
 ## Project Overview
-This workspace now contains the discovery artifacts, the runnable product foundation, and the Core Domain Model baseline for CommandMethod. The original product definition lives in `comandmethod/idea.md`, while the application code lives in the workspace root under `app/`, `src/`, `prisma/`, `tests/`, and `docs/`.
+This workspace now contains the discovery artifacts, the runnable product foundation, the Core Domain Model baseline, and the first authenticated Project Workspace Shell milestone for CommandMethod. The original product definition lives in `comandmethod/idea.md`, while the application code lives in the workspace root under `app/`, `src/`, `prisma/`, `tests/`, and `docs/`.
 
 ## Tech Stack
 - **Language:** TypeScript
@@ -39,7 +39,8 @@ This workspace now contains the discovery artifacts, the runnable product founda
 | .ai-factory/ARCHITECTURE.md | Architecture pattern, module boundaries, and development rules |
 | app/(marketing)/page.tsx | Marketing landing page for the product shell |
 | app/(workspace)/layout.tsx | Authenticated workspace layout wrapper |
-| app/(workspace)/projects/page.tsx | Current workspace entry route for project work |
+| app/(workspace)/projects/page.tsx | Workspace entry route that resolves and redirects to the selected project shell |
+| app/(workspace)/projects/[projectSlug]/page.tsx | Selected-project workspace shell route with project rail, sidebar, and canvas placeholder |
 | app/api/auth/sign-in/route.ts | Development sign-in endpoint that issues a signed session cookie |
 | app/api/health/route.ts | Health endpoint for runtime checks |
 | src/shared/auth/session.ts | Session token creation and verification |
@@ -52,6 +53,8 @@ This workspace now contains the discovery artifacts, the runnable product founda
 | src/modules/assignments/application/assign-role-service.ts | Assignment workflow with audit-history creation |
 | src/modules/comments/application/add-comment-service.ts | Project/block comment creation workflow |
 | src/modules/views/application/workspace-read-services.ts | Composition layer for workspace read models and project snapshots |
+| src/modules/views/application/workspace-shell-view-model-service.ts | Workspace shell orchestration for selection, redirect state, and active project composition |
+| src/modules/views/presentation/workspace-project-shell-view.tsx | Selected-project workspace UI with navigation rail, sidebar, and canvas placeholder |
 | middleware.ts | Security headers and workspace session gate |
 | .mcp.json | MCP server configuration for Postgres and Playwright |
 | .ai-factory.json | Local AI Factory configuration for this workspace |

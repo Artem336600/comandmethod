@@ -5,11 +5,13 @@ type WorkspaceShellProps = {
   session: {
     displayName: string;
     email: string;
+    primaryRole?: string | null;
   };
+  projectNavigation?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export function WorkspaceShell({ session, children }: WorkspaceShellProps) {
+export function WorkspaceShell({ session, projectNavigation, children }: WorkspaceShellProps) {
   return (
     <PageShell>
       <div
@@ -37,7 +39,10 @@ export function WorkspaceShell({ session, children }: WorkspaceShellProps) {
             </span>
             <strong style={{ fontSize: "1.25rem" }}>CommandMethod</strong>
             <span style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-              {session.displayName} · {session.email}
+              {session.displayName}
+              {session.primaryRole ? ` · ${session.primaryRole}` : null}
+              {" · "}
+              {session.email}
             </span>
           </div>
           <nav style={{ display: "flex", gap: "1rem", color: "var(--muted)" }}>
@@ -59,6 +64,7 @@ export function WorkspaceShell({ session, children }: WorkspaceShellProps) {
             </form>
           </nav>
         </header>
+        {projectNavigation ? <div>{projectNavigation}</div> : null}
         {children}
       </div>
     </PageShell>

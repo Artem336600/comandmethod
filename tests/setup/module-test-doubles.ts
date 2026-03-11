@@ -17,10 +17,26 @@ import type {
 } from "@/src/modules/blocks/application";
 import { Comment, CommentTarget, type CommentRepository } from "@/src/modules/comments/domain";
 import { BlockDependency, type GraphRepository } from "@/src/modules/graph/domain";
+import { Project, ProjectSlug, type ProjectRepository } from "@/src/modules/projects/domain";
 import type {
   AssignmentScope,
   AssignmentUnitOfWork
 } from "@/src/modules/assignments/application";
+
+export function createProject(overrides: Partial<Parameters<typeof Project.create>[0]> = {}) {
+  return Project.create({
+    id: overrides.id ?? "project-1",
+    name: overrides.name ?? "Alpha Release Workspace",
+    slug: overrides.slug ?? "alpha-release-workspace",
+    description: overrides.description ?? "Coordinate the alpha release delivery map.",
+    status: overrides.status ?? "active",
+    startBlockId: overrides.startBlockId ?? null,
+    finishBlockId: overrides.finishBlockId ?? null,
+    createdAt: overrides.createdAt ?? new Date("2026-03-11T09:00:00.000Z"),
+    updatedAt: overrides.updatedAt ?? new Date("2026-03-11T09:00:00.000Z"),
+    archivedAt: overrides.archivedAt ?? null
+  });
+}
 
 export function createExecutableBlock(overrides: Partial<Parameters<typeof Block.create>[0]> = {}) {
   return Block.create({
@@ -39,6 +55,49 @@ export function createExecutableBlock(overrides: Partial<Parameters<typeof Block
     createdAt: overrides.createdAt ?? new Date("2026-03-11T09:00:00.000Z"),
     updatedAt: overrides.updatedAt ?? new Date("2026-03-11T09:00:00.000Z")
   });
+}
+
+export class InMemoryProjectRepository implements ProjectRepository {
+  private readonly projects = new Map<string, Project>();
+  private readonly memberships = new Map<string, Set<string>>();
+
+  constructor(initialProjects: Project[] = [], memberships: Record<string, string[]> = {}) {
+    for (const project of initialProjects) {
+      this.projects.set(project.id, project);
+    }
+
+    for (const [userId, projectIds] of Object.entries(memberships)) {
+      this.memberships.set(userId, new Set(projectIds));
+    }
+  }
+
+  async save(project: Project): Promise<void> {
+    this.projects.set(project.id, project);
+  }
+
+  async findById(projectId: string): Promise<Project | null> {
+    return this.projects.get(projectId) ?? null;
+  }
+
+  async findBySlug(slug: ProjectSlug): Promise<Project | null> {
+    return [...this.projects.values()].find((project) => project.slug.equals(slug)) ?? null;
+  }
+
+  async listByMember(userId: string): Promise<Project[]> {
+    const projectIds = this.memberships.get(userId);
+
+    if (!projectIds) {
+      return [];
+    }
+
+    return [...this.projects.values()].filter((project) => projectIds.has(project.id));
+  }
+
+  assignMember(userId: string, projectId: string) {
+    const memberships = this.memberships.get(userId) ?? new Set<string>();
+    memberships.add(projectId);
+    this.memberships.set(userId, memberships);
+  }
 }
 
 export class InMemoryGraphRepository implements GraphRepository {

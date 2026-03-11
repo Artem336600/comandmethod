@@ -25,6 +25,7 @@ import type { GraphRepository } from "@/src/modules/graph/domain";
 import type { AssignmentRepository } from "@/src/modules/assignments/domain";
 import type { CommentRepository } from "@/src/modules/comments/domain";
 import { createModuleLogger } from "@/src/shared/lib";
+import { BuildWorkspaceShellViewModelService } from "./workspace-shell-view-model-service";
 
 const logger = createModuleLogger("views/application/workspace-read-services");
 
@@ -125,6 +126,10 @@ export function createWorkspaceReadServices(dependencies: WorkspaceReadDependenc
     listTargetComments,
     listBlockStatusHistory
   );
+  const workspaceShellViewModel = new BuildWorkspaceShellViewModelService(
+    listProjectSummaries,
+    workspaceProjectSnapshot
+  );
 
   return {
     listProjectSummaries,
@@ -133,7 +138,8 @@ export function createWorkspaceReadServices(dependencies: WorkspaceReadDependenc
     listProjectDependencies,
     listTargetAssignments,
     listTargetComments,
-    workspaceProjectSnapshot
+    workspaceProjectSnapshot,
+    workspaceShellViewModel
   };
 }
 

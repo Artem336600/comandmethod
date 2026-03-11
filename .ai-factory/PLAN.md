@@ -1,4 +1,4 @@
-# Implementation Plan: Core Domain Model
+# Implementation Plan: Project Workspace Shell
 
 Branch: none
 Created: 2026-03-11
@@ -9,63 +9,57 @@ Created: 2026-03-11
 - Docs: yes
 
 ## Roadmap Linkage
-Milestone: "Core Domain Model"
-Rationale: This plan directly targets the next unchecked roadmap milestone named in the request.
+Milestone: "Project Workspace Shell"
+Rationale: This plan targets the next unchecked roadmap milestone and turns the current authenticated `/projects` stub into a real workspace shell with project selection and base canvas/sidebar composition.
 
 ## Commit Plan
-- **Commit 1** (after tasks 1-3): `feat: add core workflow domain contracts and schema`
-- **Commit 2** (after tasks 4-6): `feat: implement domain services and repositories`
-- **Commit 3** (after tasks 7-8): `test: cover core domain model workflows`
+- **Commit 1** (after tasks 1-3): `feat(workspace): add project selection and shell routing`
+- **Commit 2** (after tasks 4-5): `feat(workspace): compose workspace shell views`
+- **Commit 3** (after tasks 6-7): `test(workspace): cover workspace shell flows`
 
 ## Tasks
 
-### Phase 1: Domain and Persistence Foundation
-- [x] Task 1: Define the core domain contracts and invariants across the modular monolith.
-  Deliverable: Introduce explicit entities, value objects, enums, policies, and repository interfaces for projects, blocks, dependencies, assignments, comments, and status history so the domain layer no longer consists of empty placeholders.
-  Files: `src/modules/projects/domain/*`, `src/modules/blocks/domain/*`, `src/modules/graph/domain/*`, `src/modules/assignments/domain/*`, `src/modules/comments/domain/*`, `src/shared/domain/*`, `src/modules/*/index.ts`.
-  Logging requirements: Keep pure domain objects log-free; document where application callers must emit `DEBUG` logs for invariant evaluation inputs, `WARN` logs for rejected commands, and `ERROR` logs only when unexpected state escapes the domain boundary.
+### Phase 1: Data Flow and Route Foundation
+- [x] Task 1: Add workspace selection and active-project view-model services.
+  Deliverable: Introduce application-level read models that combine workspace access, member-visible project summaries, selected-project resolution by slug, and one active project snapshot so the shell can render a navigation rail plus one focused workspace without loading every project in full.
+  Files: `src/modules/views/application/*`, `src/modules/projects/application/*`, `src/modules/views/application/index.ts`, `src/modules/projects/application/index.ts`.
+  Logging requirements: Emit `DEBUG` logs for session/user inputs, selected slug, and query boundaries; `INFO` logs for successful workspace view-model assembly with project and block counts; `WARN` logs for missing accessible projects, inaccessible slugs, or empty-state fallbacks; `ERROR` logs only for unexpected orchestration failures across modules.
   Dependencies: none.
 
-- [x] Task 2: Add the relational data model in Prisma for the new domain modules.
-  Deliverable: Extend `prisma/schema.prisma` with normalized models, relations, enums, indexes, and delete/update behavior for projects, blocks, dependency edges, assignments, comments, and status history; generate the first migration for this milestone.
-  Files: `prisma/schema.prisma`, `prisma/migrations/*`.
-  Logging requirements: Reuse the existing Prisma logger and ensure later repository implementations can log schema-backed read/write intent at `DEBUG`, successful writes at `INFO`, rejected uniqueness or integrity conditions at `WARN`, and persistence failures at `ERROR` without exposing connection secrets.
-  Dependencies: depends on Task 1 so the schema reflects the domain terminology and invariants.
+- [x] Task 2: Add project-selection routing for the workspace shell.
+  Deliverable: Replace the current placeholder-only `/projects` flow with route behavior that either redirects to the first accessible project or renders a no-project empty state, and add a dedicated selected-project route such as `/projects/[projectSlug]` for stable deep-linking into the workspace shell.
+  Files: `app/(workspace)/projects/page.tsx`, `app/(workspace)/projects/[projectSlug]/page.tsx`, `app/(workspace)/layout.tsx`, and any route-local helpers needed under `app/(workspace)/projects/*`.
+  Logging requirements: Emit `DEBUG` logs for route resolution and redirect decisions, `INFO` logs for successful selected-project rendering, `WARN` logs for denied or missing projects, and `ERROR` logs only when server-render assembly fails unexpectedly.
+  Dependencies: depends on Task 1.
 
-- [x] Task 3: Implement Prisma-backed repositories and mappers for projects and blocks.
-  Deliverable: Create infrastructure adapters that map Prisma records to domain models and persist project/block aggregates without leaking Prisma types into the application or presentation layers.
-  Files: `src/modules/projects/infrastructure/*`, `src/modules/blocks/infrastructure/*`, `src/shared/db/*`, `src/modules/projects/index.ts`, `src/modules/blocks/index.ts`.
-  Logging requirements: Add verbose repository logs for method entry, lookup criteria, transaction boundaries, and write outcomes; use `WARN` for missing records or optimistic validation failures and `ERROR` for database exceptions.
-  Dependencies: depends on Tasks 1-2.
+- [x] Task 3: Refactor the workspace shell frame into responsive layout primitives.
+  Deliverable: Expand the current `WorkspaceShell` into a real shell frame with top navigation, project switcher slot, sidebar slot, main canvas slot, and mobile-safe stacking behavior while preserving the current authenticated layout entry point.
+  Files: `src/modules/views/presentation/workspace-shell.tsx`, `src/modules/views/presentation/*`, `src/shared/ui/*`, `src/modules/views/presentation/index.ts`.
+  Logging requirements: Keep presentation components log-free unless they perform server-side view-model shaping; if helper components do shape server data, use `DEBUG` logs for slot/layout inputs and avoid noisy per-render logging in pure UI leaves.
+  Dependencies: depends on Task 1 so the shell props match the new workspace view model.
 
-### Phase 2: Domain Services and Cross-Module Workflows
-- [x] Task 4: Implement graph dependency services and status-history recording rules.
-  Deliverable: Add application services and domain policies that create/remove dependency edges, prevent self-dependencies and cycles, and record block status transitions with explicit history entries and validation messages.
-  Files: `src/modules/graph/application/*`, `src/modules/graph/domain/*`, `src/modules/blocks/application/*`, `src/modules/blocks/domain/*`, `src/modules/graph/infrastructure/*`, `src/modules/blocks/index.ts`, `src/modules/graph/index.ts`.
-  Logging requirements: Emit `DEBUG` logs for graph validation inputs and traversal results, `INFO` logs for accepted dependency/status changes, `WARN` logs for rejected invariants, and `ERROR` logs for transaction failures or inconsistent persistence state.
+### Phase 2: Workspace Composition
+- [x] Task 4: Build the project rail, sidebar panels, and canvas placeholder views.
+  Deliverable: Add intentional presentation components for project navigation, current project summary, key counts/status indicators, and a base canvas stage placeholder that clearly reserves space for the upcoming flow canvas milestone without embedding graph rules in the UI.
+  Files: `src/modules/views/presentation/*`, `src/shared/ui/*`, and any supporting presentation DTO helpers under `src/modules/views/application/*`.
+  Logging requirements: Prefer log-free presentational components; keep any server-side DTO shaping logs at `DEBUG`, summarize panel/canvas composition success at `INFO` in the calling application service, and avoid client-side console noise.
   Dependencies: depends on Tasks 1-3.
 
-- [x] Task 5: Implement assignment and comment workflows on top of the core aggregates.
-  Deliverable: Add repositories, entities, and application services for assigning roles to work, attaching project/block comments, and enforcing ownership/reviewer constraints defined by the domain model.
-  Files: `src/modules/assignments/domain/*`, `src/modules/assignments/application/*`, `src/modules/assignments/infrastructure/*`, `src/modules/comments/domain/*`, `src/modules/comments/application/*`, `src/modules/comments/infrastructure/*`, `src/modules/assignments/index.ts`, `src/modules/comments/index.ts`.
-  Logging requirements: Emit `DEBUG` logs for command inputs and permission checks, `INFO` logs for created assignments/comments, `WARN` logs for invalid actor-role combinations or missing targets, and `ERROR` logs for persistence failures.
-  Dependencies: depends on Tasks 1-3 and should reuse Task 4 status and graph terminology.
-
-- [x] Task 6: Add application-level composition points and read models for the upcoming workspace shell.
-  Deliverable: Expose stable service factories, DTO/read-model builders, and module exports so later routes and UI work can query projects, blocks, dependency summaries, assignees, comments, and status history without reaching into infrastructure details.
-  Files: `src/modules/projects/application/*`, `src/modules/blocks/application/*`, `src/modules/graph/application/*`, `src/modules/assignments/application/*`, `src/modules/comments/application/*`, `src/modules/index.ts`, `src/modules/views/application/*`.
-  Logging requirements: Use `DEBUG` for service entry and output shaping, `INFO` for successful aggregate/query assembly, `WARN` for degraded or partial data conditions, and `ERROR` when orchestration fails across module boundaries.
-  Dependencies: depends on Tasks 3-5.
+- [x] Task 5: Integrate the new workspace composition into authenticated pages and module exports.
+  Deliverable: Wire the selected-project route and layout to the new shell, sidebar, and canvas placeholder components; ensure module exports remain stable; and keep project selection, sign-out, and authenticated navigation working end to end.
+  Files: `app/(workspace)/layout.tsx`, `app/(workspace)/projects/page.tsx`, `app/(workspace)/projects/[projectSlug]/page.tsx`, `src/modules/views/index.ts`, `src/modules/views/presentation/index.ts`, and any affected module composition files.
+  Logging requirements: Emit `DEBUG` logs for page-level composition inputs, `INFO` logs for successful shell hydration per selected project, `WARN` logs for degraded empty states, and `ERROR` logs for unexpected render-path failures that escape the application layer.
+  Dependencies: depends on Tasks 2-4.
 
 ### Phase 3: Verification and Documentation
-- [x] Task 7: Add unit and integration coverage for the core domain model milestone.
-  Deliverable: Cover domain invariants, repository mappings, graph validation, assignment/comment workflows, and status-history behavior with focused unit tests plus integration tests that exercise the application services and Prisma-backed persistence boundaries.
-  Files: `tests/unit/modules/**/*`, `tests/integration/modules/**/*`, `tests/setup/*`, and any supporting test fixtures required for Prisma-backed scenarios.
-  Logging requirements: Assert behavior instead of log content, but keep test execution compatible with verbose runtime logging; add targeted test helpers only where they reduce noisy setup, and ensure failure paths covered by `WARN`/`ERROR` branches are exercised.
-  Dependencies: depends on Tasks 1-6.
+- [x] Task 6: Add unit and integration coverage for workspace selection and shell rendering.
+  Deliverable: Cover project-selection routing, empty-state behavior, selected-project view-model assembly, and workspace shell composition with focused unit/integration tests so regressions in redirects, access control, and shell slots are caught before the Flow Canvas milestone.
+  Files: `tests/unit/modules/views/**/*`, `tests/unit/modules/projects/**/*`, `tests/integration/modules/views/**/*`, `tests/integration/modules/projects/**/*`, and any shared test helpers in `tests/setup/*`.
+  Logging requirements: Do not assert raw log strings; instead exercise success, `WARN`, and failure paths through behavior and keep tests compatible with verbose runtime logging.
+  Dependencies: depends on Tasks 1-5.
 
-- [x] Task 8: Update developer documentation for the new domain model baseline.
-  Deliverable: Document the new modules, Prisma migration workflow, and expected boundaries for domain/application/infrastructure code so follow-on milestones build on the same vocabulary and constraints.
-  Files: `README.md`, `docs/setup.md`, `AGENTS.md`, and any `.ai-factory` docs that need milestone-level clarification without duplicating existing architecture guidance.
-  Logging requirements: Document the expected logging behavior for new services and repositories, including the meaning of `DEBUG`, `INFO`, `WARN`, and `ERROR` events around domain mutations.
-  Dependencies: depends on Tasks 1-7 so the documentation reflects the implemented design.
+- [x] Task 7: Update documentation for the workspace-shell baseline.
+  Deliverable: Document the new workspace routes, selection behavior, empty-state expectations, and shell composition boundaries so the next milestones can attach canvas interactions and block editing to a stable authenticated shell.
+  Files: `README.md`, `docs/setup.md`, `AGENTS.md`, and milestone-tracking docs that need a workspace-shell status update without rewriting architecture guidance.
+  Logging requirements: Document expected `DEBUG`/`INFO`/`WARN` semantics for workspace route composition and selected-project loading so follow-on work preserves the same observability pattern.
+  Dependencies: depends on Tasks 1-6.

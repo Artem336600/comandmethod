@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/src/shared/auth";
+import { getPrimaryRoleLabel } from "@/src/shared/domain";
 import { WorkspaceShell } from "@/src/modules/views/presentation/workspace-shell";
 import { createModuleLogger } from "@/src/shared/lib";
 
@@ -25,7 +26,8 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       <WorkspaceShell
         session={{
           displayName: session.displayName,
-          email: session.email
+          email: session.email,
+          primaryRole: getPrimaryRoleLabel(session.roles)
         }}
       >
         {children}

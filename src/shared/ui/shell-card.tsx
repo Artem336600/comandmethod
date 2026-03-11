@@ -1,3 +1,5 @@
+import React from "react";
+
 type ShellCardProps = {
   eyebrow?: string;
   title: string;
