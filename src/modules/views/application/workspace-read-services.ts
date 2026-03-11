@@ -1,6 +1,5 @@
 import {
-  ListProjectSummariesService,
-  type ProjectSummaryReadModel
+  ListProjectSummariesService
 } from "@/src/modules/projects/application";
 import {
   ListProjectBlocksService,

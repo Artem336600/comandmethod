@@ -3,7 +3,7 @@
 > Project map for AI agents. Keep this file up-to-date as the project evolves.
 
 ## Project Overview
-This workspace now contains both the discovery artifacts and the first runnable product foundation for CommandMethod, a visual system for team software delivery. The original product definition lives in `comandmethod/idea.md`, while the application code lives in the workspace root under `app/`, `src/`, `prisma/`, `tests/`, and `docs/`.
+This workspace now contains the discovery artifacts, the runnable product foundation, and the Core Domain Model baseline for CommandMethod. The original product definition lives in `comandmethod/idea.md`, while the application code lives in the workspace root under `app/`, `src/`, `prisma/`, `tests/`, and `docs/`.
 
 ## Tech Stack
 - **Language:** TypeScript
@@ -17,9 +17,9 @@ This workspace now contains both the discovery artifacts and the first runnable 
 |- .codex/                  local Codex skills used to manage project workflows
 |- .ai-factory/             generated AI project context and architecture docs
 |- app/                     Next.js App Router entry points, route groups, and API routes
-|- src/                     modular monolith code: modules, shared services, server adapters
-|- prisma/                  Prisma schema and database foundation
-|- tests/                   unit, integration, and e2e test suites
+|- src/                     modular monolith code: domain, application, infrastructure, UI, and server adapters
+|- prisma/                  Prisma schema and migrations for the core domain model
+|- tests/                   unit, integration, and e2e test suites plus in-memory test doubles
 |- docs/                    developer-facing setup documentation
 |- README.md                root project quick-start and command reference
 |- middleware.ts            request security headers and workspace auth gate
@@ -44,6 +44,14 @@ This workspace now contains both the discovery artifacts and the first runnable 
 | app/api/health/route.ts | Health endpoint for runtime checks |
 | src/shared/auth/session.ts | Session token creation and verification |
 | src/shared/db/prisma.ts | Shared Prisma client singleton and connection verification |
+| prisma/schema.prisma | Canonical Prisma schema for projects, blocks, dependencies, assignments, comments, and status history |
+| prisma/migrations/202603110001_core_domain_model/migration.sql | Initial SQL migration for the Core Domain Model milestone |
+| src/modules/projects/domain/project.ts | Project aggregate rules, lifecycle, and anchor validation |
+| src/modules/blocks/domain/block.ts | Block aggregate rules for owner, DoD, blockers, and status lifecycle |
+| src/modules/graph/application/create-block-dependency-service.ts | Server-side dependency creation with duplicate/cycle prevention |
+| src/modules/assignments/application/assign-role-service.ts | Assignment workflow with audit-history creation |
+| src/modules/comments/application/add-comment-service.ts | Project/block comment creation workflow |
+| src/modules/views/application/workspace-read-services.ts | Composition layer for workspace read models and project snapshots |
 | middleware.ts | Security headers and workspace session gate |
 | .mcp.json | MCP server configuration for Postgres and Playwright |
 | .ai-factory.json | Local AI Factory configuration for this workspace |
@@ -53,7 +61,7 @@ This workspace now contains both the discovery artifacts and the first runnable 
 |----------|------|-------------|
 | Product idea | comandmethod/idea.md | Full product concept, domain model, risks, and MVP scope |
 | Root README | README.md | Quick start, core commands, env vars, and current foundation status |
-| Setup guide | docs/setup.md | Local environment, database, auth baseline, and quality checks |
+| Setup guide | docs/setup.md | Local environment, Prisma workflow, auth baseline, and quality checks |
 | AI Factory docs | ai-factory/README.md | Documentation for the bundled AI Factory toolkit |
 
 ## AI Context Files

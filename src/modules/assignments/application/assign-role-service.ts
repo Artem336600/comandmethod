@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { DomainValidationError } from "@/src/shared/domain";
 import { createModuleLogger } from "@/src/shared/lib";
 import {
   Assignment,

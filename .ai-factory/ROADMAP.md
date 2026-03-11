@@ -6,7 +6,7 @@
 
 - [x] **Product Discovery and AI Context** — capture the product vision, recommended stack, architecture pattern, AI agent map, and baseline MCP configuration
 - [x] **Foundation App Setup** — initialize the product application with Next.js, TypeScript, Prisma, PostgreSQL, auth baseline, and the modular monolith structure from the architecture guide
-- [ ] **Core Domain Model** — implement projects, blocks, dependencies, roles, comments, status history, and graph invariants as explicit domain modules
+- [x] **Core Domain Model** — implement projects, blocks, dependencies, roles, comments, status history, and graph invariants as explicit domain modules
 - [ ] **Project Workspace Shell** — deliver the authenticated workspace layout with navigation, project selection, and the base canvas/sidebar composition
 - [ ] **Flow Canvas MVP** — render project maps with start/end anchors, block nodes, dependency edges, zooming, selection, and branch visualization
 - [ ] **Block Editor and Validation** — support creating and editing blocks with required metadata, DoD, owners, blockers, and server-side validation rules
@@ -24,3 +24,4 @@
 |-----------|------|
 | Product discovery and AI project context | 2026-03-10 |
 | Foundation App Setup | 2026-03-10 |
+| Core Domain Model | 2026-03-11 |

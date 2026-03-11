@@ -6,16 +6,16 @@ ticket board.
 
 ## Current Status
 
-This repository currently contains the foundation application setup:
+This repository currently contains the foundation application setup plus the first core domain model slice:
 
 - Next.js application in the workspace root
 - Typed environment and runtime configuration
 - Security middleware and health endpoint
-- Prisma/PostgreSQL foundation
-- Modular monolith folder skeleton
+- Prisma/PostgreSQL schema for projects, blocks, dependencies, assignments, comments, and status history
+- Modular monolith domain, application, and infrastructure modules for the core workflow model
 - Marketing and workspace route shells
 - Baseline signed-session auth flow
-- Unit, integration, and e2e test tooling baseline
+- Unit and integration coverage for domain invariants, mappers, and workflow services
 
 ## Quick Start
 
@@ -41,6 +41,7 @@ npm run build
 npm run start
 npm run lint
 npm run typecheck
+npm test
 npm run test:unit
 npm run test:integration
 npm run test:e2e
@@ -74,9 +75,26 @@ Logs must never include secrets, raw credentials, or full connection strings.
 ## Testing Notes
 
 - `test:unit` covers small pure logic checks
-- `test:integration` covers module-level behavior with application boundaries
+- `test:integration` covers module-level behavior with application boundaries and in-memory workflow orchestration
 - `test:e2e` is configured with Playwright, but browsers may still need to be installed in a fresh environment
 - `PLAYWRIGHT_BASE_URL` can point Playwright at a non-default local server when needed
+
+## Core Domain Model
+
+The current milestone adds explicit domain modules and persistence artifacts for:
+
+- projects and workspace membership summaries
+- blocks, definition of done, blockers, and status history
+- graph dependencies with cycle-prevention services
+- assignments with audit history
+- project/block comments
+
+Important implementation entry points:
+
+- `prisma/schema.prisma` and `prisma/migrations/202603110001_core_domain_model/migration.sql`
+- `src/modules/*/domain/*` for entities, policies, and repository contracts
+- `src/modules/*/infrastructure/*` for Prisma mappers and repositories
+- `src/modules/views/application/workspace-read-services.ts` for the workspace read-model composition layer
 
 ## Documentation
 

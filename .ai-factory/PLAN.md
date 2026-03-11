@@ -58,13 +58,13 @@ Rationale: This plan directly targets the next unchecked roadmap milestone named
   Dependencies: depends on Tasks 3-5.
 
 ### Phase 3: Verification and Documentation
-- [ ] Task 7: Add unit and integration coverage for the core domain model milestone.
+- [x] Task 7: Add unit and integration coverage for the core domain model milestone.
   Deliverable: Cover domain invariants, repository mappings, graph validation, assignment/comment workflows, and status-history behavior with focused unit tests plus integration tests that exercise the application services and Prisma-backed persistence boundaries.
   Files: `tests/unit/modules/**/*`, `tests/integration/modules/**/*`, `tests/setup/*`, and any supporting test fixtures required for Prisma-backed scenarios.
   Logging requirements: Assert behavior instead of log content, but keep test execution compatible with verbose runtime logging; add targeted test helpers only where they reduce noisy setup, and ensure failure paths covered by `WARN`/`ERROR` branches are exercised.
   Dependencies: depends on Tasks 1-6.
 
-- [ ] Task 8: Update developer documentation for the new domain model baseline.
+- [x] Task 8: Update developer documentation for the new domain model baseline.
   Deliverable: Document the new modules, Prisma migration workflow, and expected boundaries for domain/application/infrastructure code so follow-on milestones build on the same vocabulary and constraints.
   Files: `README.md`, `docs/setup.md`, `AGENTS.md`, and any `.ai-factory` docs that need milestone-level clarification without duplicating existing architecture guidance.
   Logging requirements: Document the expected logging behavior for new services and repositories, including the meaning of `DEBUG`, `INFO`, `WARN`, and `ERROR` events around domain mutations.

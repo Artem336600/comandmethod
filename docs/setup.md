@@ -22,7 +22,18 @@ npm run prisma:migrate:dev
 npm run prisma:migrate:deploy
 ```
 
-Current schema is intentionally minimal. Domain tables will be introduced in the next milestone.
+The current schema already includes the Core Domain Model tables for:
+
+- `Project`
+- `Block`
+- `Dependency`
+- `Assignment`
+- `AssignmentHistory`
+- `Comment`
+- `BlockStatusHistory`
+
+The first migration for this milestone lives at `prisma/migrations/202603110001_core_domain_model/migration.sql`.
+For a new local database, run `npm run prisma:migrate:dev` after setting `DATABASE_URL`.
 
 ## Authentication Baseline
 
@@ -44,6 +55,10 @@ Key runtime logs currently include:
 - health endpoint checks
 - Prisma client and connection lifecycle
 - auth session issuance and verification
+- graph dependency validation and persistence
+- block status transitions and status-history writes
+- assignment changes and assignment-history writes
+- comment creation and workspace read-model assembly
 
 ## Quality Checks
 
@@ -52,9 +67,16 @@ Run the local quality baseline before handing work to another contributor:
 ```bash
 npm run lint
 npm run typecheck
+npm test
 npm run test:unit
 npm run test:integration
 ```
+
+Current automated coverage includes:
+
+- domain invariants for projects, blocks, and assignments
+- Prisma mapper boundaries for projects and blocks
+- graph dependency, status transition, assignment, and comment workflows
 
 `npm run test:e2e` is configured but may require Playwright browser installation in a fresh machine.
 By default it targets `http://127.0.0.1:3000`, or `PLAYWRIGHT_BASE_URL` if provided.

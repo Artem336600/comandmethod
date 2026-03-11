@@ -11,6 +11,8 @@ export function assertNonEmptyText(value: string, fieldName: string): string {
 }
 
 export function assertOptionalText(value: string | null | undefined, fieldName: string): string | null {
+  void fieldName;
+
   if (value === null || value === undefined) {
     return null;
   }
